@@ -1,0 +1,346 @@
+MeetingsCPUUtilizationAlarm:
+  Type: AWS::CloudWatch::Alarm
+  Properties:
+  AlarmDescription: !Sub "Meetings service CPU Above 70% in ${EnvironmentType} on the ECS Fargate"
+  AlarmName: !Sub ${EnvironmentType}-${EnvironmentName}-cm-meetings-CPU-alarm
+  ComparisonOperator: GreaterThanOrEqualToThreshold
+  Dimensions:
+  - Name: ClusterName
+  Value: !Ref EcsCluster
+  - Name: ServiceName
+  Value: !GetAtt Service.Name
+  EvaluationPeriods: 1
+  MetricName: CPUUtilization
+  Namespace: AWS/ECS
+  OKActions:
+  - {'Fn::ImportValue': !Sub '${EnvironmentType}-${EnvironmentType}-global-data-PagerDutyTopic'}
+  AlarmActions:
+  - {'Fn::ImportValue': !Sub '${EnvironmentType}-${EnvironmentType}-global-data-PagerDutyTopic'}
+  Statistic: Average
+  Threshold: '70'
+  Period: '300'
+  TreatMissingData: breaching
+
+MeetingsMemoryUtilizationAlarm:
+  Type: AWS::CloudWatch::Alarm
+  Properties:
+  AlarmDescription: !Sub "Meetings service Memory Above 70% in ${EnvironmentType} on the ECS Fargate"
+  AlarmName: !Sub ${EnvironmentType}-${EnvironmentName}-cm-meetings-Memory-alarm
+  ComparisonOperator: GreaterThanOrEqualToThreshold
+  Dimensions:
+  - Name: ClusterName
+  Value: !Ref EcsCluster
+  - Name: ServiceName
+  Value: !GetAtt Service.Name
+  EvaluationPeriods: 1
+  MetricName: MemoryUtilization
+  Namespace: AWS/ECS
+  OKActions:
+  - {'Fn::ImportValue': !Sub '${EnvironmentType}-${EnvironmentType}-global-data-PagerDutyTopic'}
+  AlarmActions:
+  - {'Fn::ImportValue': !Sub '${EnvironmentType}-${EnvironmentType}-global-data-PagerDutyTopic'}
+  Statistic: Average
+  Threshold: '70'
+  Period: '300'
+  TreatMissingData: breaching
+
+MeetingsRunningTaskCount:
+  Type: AWS::CloudWatch::Alarm
+  Properties:
+  AlarmDescription: !Sub "Meetings service Number of tasks in running state in resource."
+  AlarmName: !Sub ${EnvironmentType}-${EnvironmentName}-cm-meetings-running-task-count-alarm
+  ComparisonOperator: LessThanOrEqualToThreshold
+  Dimensions:
+  - Name: ClusterName
+  Value: !Ref EcsCluster
+  - Name: ServiceName
+  Value: !GetAtt Service.Name
+  EvaluationPeriods: 1
+  MetricName: RunningTaskCount
+  Namespace: AWS/ECS
+  OKActions:
+  - {'Fn::ImportValue': !Sub '${EnvironmentType}-${EnvironmentType}-global-data-PagerDutyTopic'}
+  AlarmActions:
+  - {'Fn::ImportValue': !Sub '${EnvironmentType}-${EnvironmentType}-global-data-PagerDutyTopic'}
+  Statistic: Maximum
+  Threshold: 1
+  Period: '300'
+  TreatMissingData: breaching
+
+MeetingsPendingTaskCount:
+  Type: AWS::CloudWatch::Alarm
+  Properties:
+  AlarmDescription: !Sub "Meetings service Number of tasks in pending state ${EnvironmentType} on the ECS Fargate"
+  AlarmName: !Sub ${EnvironmentType}-${EnvironmentName}-cm-meetings-pending-task-count-alarm
+  ComparisonOperator: GreaterThanOrEqualToThreshold
+  Dimensions:
+  - Name: ClusterName
+  Value: !Ref EcsCluster
+  - Name: ServiceName
+  Value: !GetAtt Service.Name
+  EvaluationPeriods: 1
+  MetricName: PendingTaskCount
+  Namespace: AWS/ECS
+  OKActions:
+  - {'Fn::ImportValue': !Sub '${EnvironmentType}-${EnvironmentType}-global-data-PagerDutyTopic'}
+  AlarmActions:
+  - {'Fn::ImportValue': !Sub '${EnvironmentType}-${EnvironmentType}-global-data-PagerDutyTopic'}
+  Statistic: Maximum
+  Threshold: 1
+  Period: '300'
+  TreatMissingData: breaching 
+
+MeetingsTaskSetCount:
+  Type: AWS::CloudWatch::Alarm
+  Properties:
+  AlarmDescription: !Sub "Meetings service's Number of task sets in service ${EnvironmentType} on the ECS Fargate"
+  AlarmName: !Sub ${EnvironmentType}-${EnvironmentName}-cm-meetings-task-sets-alarm
+  ComparisonOperator: LessThanOrEqualToThreshold
+  Dimensions:
+  - Name: ClusterName
+  Value: !Ref EcsCluster
+  - Name: ServiceName
+  Value: !GetAtt Service.Name
+  EvaluationPeriods: 1
+  MetricName: TaskSetCount
+  Namespace: AWS/ECS
+  OKActions:
+  - {'Fn::ImportValue': !Sub '${EnvironmentType}-${EnvironmentType}-global-data-PagerDutyTopic'}
+  AlarmActions:
+  - {'Fn::ImportValue': !Sub '${EnvironmentType}-${EnvironmentType}-global-data-PagerDutyTopic'}
+  Statistic: Maximum
+  Threshold: 1
+  Period: '300'
+  TreatMissingData: breaching
+
+StorageReadBytes:
+  Type: AWS::CloudWatch::Alarm
+  Properties:
+  AlarmDescription: !Sub "Meetings service's number of bytes read from storage in the resource in service"
+  AlarmName: !Sub ${EnvironmentType}-${EnvironmentName}-cm-meetings-task-set-count-alarm
+  ComparisonOperator: GreaterThanOrEqualToThreshold
+  Dimensions:
+  - Name: ClusterName
+  Value: !Ref EcsCluster
+  - Name: ServiceName
+  Value: !GetAtt Service.Name
+  EvaluationPeriods: 1
+  MetricName: StorageReadBytes
+  Namespace: AWS/ECS
+  OKActions:
+  - {'Fn::ImportValue': !Sub '${EnvironmentType}-${EnvironmentType}-global-data-PagerDutyTopic'}
+  AlarmActions:
+  - {'Fn::ImportValue': !Sub '${EnvironmentType}-${EnvironmentType}-global-data-PagerDutyTopic'}
+  Statistic: Sum
+  Threshold: 1000000
+  Period: '300'
+  TreatMissingData: breaching
+
+MeetingsNetworkRxBytes:
+  Type: AWS::CloudWatch::Alarm
+  Properties:
+  AlarmDescription: !Sub "Meetings service's Number of bytes received from resource"
+  AlarmName: !Sub ${EnvironmentType}-${EnvironmentName}-cm-meetings-network-rx-bytes-alarm
+  ComparisonOperator: GreaterThanOrEqualToThreshold
+  Dimensions:
+  - Name: ClusterName
+  Value: !Ref EcsCluster
+  - Name: ServiceName
+  Value: !GetAtt Service.Name
+  EvaluationPeriods: 1
+  MetricName: NetworkRxBytes
+  Namespace: AWS/ECS
+  OKActions:
+  - {'Fn::ImportValue': !Sub '${EnvironmentType}-${EnvironmentType}-global-data-PagerDutyTopic'}
+  AlarmActions:
+  - {'Fn::ImportValue': !Sub '${EnvironmentType}-${EnvironmentType}-global-data-PagerDutyTopic'}
+  Statistic: Sum
+  Threshold: 1000000
+  Period: '300'
+  TreatMissingData: breaching
+
+MeetingsStorageWriteBytes:
+  Type: AWS::CloudWatch::Alarm
+  Properties:
+  AlarmDescription: !Sub "Meetings service's Number of bytes written to storage in the resource"
+  AlarmName: !Sub ${EnvironmentType}-${EnvironmentName}-cm-meetings-storage-write-bytes-alarm
+  ComparisonOperator: GreaterThanOrEqualToThreshold
+  Dimensions:
+  - Name: ClusterName
+  Value: !Ref EcsCluster
+  - Name: ServiceName
+  Value: !GetAtt Service.Name
+  EvaluationPeriods: 1
+  MetricName: StorageWriteBytes
+  Namespace: AWS/ECS
+  OKActions:
+  - {'Fn::ImportValue': !Sub '${EnvironmentType}-${EnvironmentType}-global-data-PagerDutyTopic'}
+  AlarmActions:
+  - {'Fn::ImportValue': !Sub '${EnvironmentType}-${EnvironmentType}-global-data-PagerDutyTopic'}
+  Statistic: Sum
+  Threshold: 1000000
+  Period: '300'
+  TreatMissingData: breaching
+
+MeetingsNetworkTxBytes:
+  Type: AWS::CloudWatch::Alarm
+  Properties:
+  AlarmDescription: !Sub "Meetings service's Number of bytes transmited by the resource"
+  AlarmName: !Sub ${EnvironmentType}-${EnvironmentName}-cm-meetings-network-tx-bytes-alarm
+  ComparisonOperator: GreaterThanOrEqualToThreshold
+  Dimensions:
+  - Name: ClusterName
+  Value: !Ref EcsCluster
+  - Name: ServiceName
+  Value: !GetAtt Service.Name
+  EvaluationPeriods: 1
+  MetricName: NetworTxBytes
+  Namespace: AWS/ECS
+  OKActions:
+  - {'Fn::ImportValue': !Sub '${EnvironmentType}-${EnvironmentType}-global-data-PagerDutyTopic'}
+  AlarmActions:
+  - {'Fn::ImportValue': !Sub '${EnvironmentType}-${EnvironmentType}-global-data-PagerDutyTopic'}
+  Statistic: Sum
+  Threshold: 1000000
+  Period: '300'
+  TreatMissingData: breaching
+
+MeetingsCpuReserved:
+  Type: AWS::CloudWatch::Alarm
+  Properties:
+  AlarmDescription: !Sub "Meetings service's Number of CPUs reserved by the tasks"
+  AlarmName: !Sub ${EnvironmentType}-${EnvironmentName}-cm-meetings-cpu-reserved-alarm
+  ComparisonOperator: GreaterThanOrEqualToThreshold
+  Dimensions:
+  - Name: ClusterName
+  Value: !Ref EcsCluster
+  - Name: ServiceName
+  Value: !GetAtt Service.Name
+  EvaluationPeriods: 1
+  MetricName: CpuReserved
+  Namespace: AWS/ECS
+  OKActions:
+  - {'Fn::ImportValue': !Sub '${EnvironmentType}-${EnvironmentType}-global-data-PagerDutyTopic'}
+  AlarmActions:
+  - {'Fn::ImportValue': !Sub '${EnvironmentType}-${EnvironmentType}-global-data-PagerDutyTopic'}
+  Statistic: Average
+  Threshold: '70'
+  Period: '300'
+  TreatMissingData: breaching
+
+MeetingsEphemeralStorageUtilized:
+  Type: AWS::CloudWatch::Alarm
+  Properties:
+  AlarmDescription: !Sub "Meetings service's Number of bytes used from ephemeral storage in the resource"
+  AlarmName: !Sub ${EnvironmentType}-${EnvironmentName}-cm-meetings-ephemeral-storage-utilized-alarm
+  ComparisonOperator: GreaterThanOrEqualToThreshold
+  Dimensions:
+  - Name: ClusterName
+  Value: !Ref EcsCluster
+  - Name: ServiceName
+  Value: !GetAtt Service.Name
+  EvaluationPeriods: 1
+  MetricName: EphemeralStorageUtilized
+  Namespace: AWS/ECS
+  OKActions:
+  - {'Fn::ImportValue': !Sub '${EnvironmentType}-${EnvironmentType}-global-data-PagerDutyTopic'}
+  AlarmActions:
+  - {'Fn::ImportValue': !Sub '${EnvironmentType}-${EnvironmentType}-global-data-PagerDutyTopic'}
+  Statistic: Average
+  Threshold: '70'
+  Period: '300'
+  TreatMissingData: breaching
+
+MeetingsEphemeralStorageReserved:
+  Type: AWS::CloudWatch::Alarm
+  Properties:
+  AlarmDescription: !Sub "Meetings service's Number of bytes used from ephemeral storage in the resource"
+  AlarmName: !Sub ${EnvironmentType}-${EnvironmentName}-cm-meetings-ephemeral-storage-reserved-alarm
+  ComparisonOperator: GreaterThanOrEqualToThreshold
+  Dimensions:
+  - Name: ClusterName
+  Value: !Ref EcsCluster
+  - Name: ServiceName
+  Value: !GetAtt Service.Name
+  EvaluationPeriods: 1
+  MetricName: EphemeralStorageReserved
+  Namespace: AWS/ECS
+  OKActions:
+  - {'Fn::ImportValue': !Sub '${EnvironmentType}-${EnvironmentType}-global-data-PagerDutyTopic'}
+  AlarmActions:
+  - {'Fn::ImportValue': !Sub '${EnvironmentType}-${EnvironmentType}-global-data-PagerDutyTopic'}
+  Statistic: Average
+  Threshold: '70'
+  Period: '300'
+  TreatMissingData: breaching
+
+
+MeetingsDeploymentCount:
+  Type: AWS::CloudWatch::Alarm
+  Properties:
+  AlarmDescription: !Sub "Meetings service's number of deployments in an Amazon ECS service."
+  AlarmName: !Sub ${EnvironmentType}-${EnvironmentName}-cm-meetings-deployment-count-alarm
+  ComparisonOperator: GreaterThanOrEqualToThreshold
+  Dimensions:
+  - Name: ClusterName
+  Value: !Ref EcsCluster
+  - Name: ServiceName
+  Value: !GetAtt Service.Name
+  EvaluationPeriods: 1
+  MetricName: DeploymentCount
+  Namespace: AWS/ECS
+  OKActions:
+  - {'Fn::ImportValue': !Sub '${EnvironmentType}-${EnvironmentType}-global-data-PagerDutyTopic'}
+  AlarmActions:
+  - {'Fn::ImportValue': !Sub '${EnvironmentType}-${EnvironmentType}-global-data-PagerDutyTopic'}
+  Statistic: Sum
+  Threshold: 1
+  Period: '300'
+  TreatMissingData: breaching
+
+MeetingsMemoryReserved:
+  Type: AWS::CloudWatch::Alarm
+  Properties:
+  AlarmDescription: !Sub "Meetings service memory that is reserved by tasks in the resource."
+  AlarmName: !Sub ${EnvironmentType}-${EnvironmentName}-cm-meetings-memory-reserved-alarm
+  ComparisonOperator: GreaterThanOrEqualToThreshold
+  Dimensions:
+  - Name: ClusterName
+  Value: !Ref EcsCluster
+  - Name: ServiceName
+  Value: !GetAtt Service.Name
+  EvaluationPeriods: 1
+  MetricName: MemoryReserved
+  Namespace: AWS/ECS
+  OKActions:
+  - {'Fn::ImportValue': !Sub '${EnvironmentType}-${EnvironmentType}-global-data-PagerDutyTopic'}
+  AlarmActions:
+  - {'Fn::ImportValue': !Sub '${EnvironmentType}-${EnvironmentType}-global-data-PagerDutyTopic'}
+  Statistic: Average
+  Threshold: '70'
+  Period: '300'
+  TreatMissingData: breaching
+
+
+MeetingsDesiredTaskCount:
+  Type: AWS::CloudWatch::Alarm
+  Properties:
+  AlarmDescription: !Sub "Meetings service's desired number of tasks."
+  AlarmName: !Sub ${EnvironmentType}-${EnvironmentName}-cm-meetings-desired-task-count-alarm
+  ComparisonOperator: GreaterThanOrEqualToThreshold
+  Dimensions:
+  - Name: ClusterName
+  Value: !Ref EcsCluster
+  - Name: ServiceName
+  Value: !GetAtt Service.Name
+  EvaluationPeriods: 1
+  MetricName: DesiredTaskCount
+  Namespace: AWS/ECS
+  OKActions:
+  - {'Fn::ImportValue': !Sub '${EnvironmentType}-${EnvironmentType}-global-data-PagerDutyTopic'}
+  AlarmActions:
+  - {'Fn::ImportValue': !Sub '${EnvironmentType}-${EnvironmentType}-global-data-PagerDutyTopic'}
+  Statistic: Average   
+  Threshold: 1
+  Period: '300'
+  TreatMissingData: breaching
