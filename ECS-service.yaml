@@ -1,0 +1,184 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: |
+  
+Parameters:
+  ClusterParameter:
+    Type: String
+    Description: Enter the name of cluster where service should get created
+    Default: POC-Adarsh-cluster
+  VPCID:
+    Type: AWS::EC2::VPC::Id
+    Description: enter public VPC ID
+  SubnetID:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: enter public subnet ID
+
+Resources:
+  DemoTaskdefinationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: 
+              - ecs.amazonaws.com
+              - ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      Description: Role for Task Defination
+      ManagedPolicyArns: 
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+        - arn:aws:iam::aws:policy/CloudWatchFullAccess
+      RoleName: adarsh-Demo-task-defination-role-cf
+
+  DemoService:
+    Type: AWS::ECS::Service
+    Properties:
+      CapacityProviderStrategy:
+        - Base: 0
+          CapacityProvider: FARGATE
+          Weight: 1
+      Cluster: 
+        Ref: ClusterParameter
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      DeploymentController:
+        Type: ECS
+      DesiredCount: 1
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          Subnets: !Ref SubnetID
+          SecurityGroups:
+            - Ref: DemoECSSecurityGroup
+          AssignPublicIp: ENABLED
+      PropagateTags: TASK_DEFINITION
+      SchedulingStrategy: REPLICA 
+      ServiceName: adarsh-nginx-service-from-cf
+      Tags: 
+        - Key: createdby
+          Value: adarsh-cf
+      TaskDefinition:
+        Ref: DemoTaskdefination
+
+  DemoTaskdefination:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      ContainerDefinitions:
+        -
+          DisableNetworking: false
+          Essential: true
+          Image: nginx:latest
+          Interactive: false
+          Name: nginx
+          PortMappings: 
+            - AppProtocol: http
+              ContainerPort: 80
+              HostPort: 80
+              Name: nginx-80-http
+              Protocol: tcp
+      Cpu: 2048
+      ExecutionRoleArn: {"Fn::GetAtt": ['DemoTaskdefinationRole','Arn']}
+      Memory: 4096
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      RuntimePlatform:
+        CpuArchitecture: "x86-64"
+        OperatingSystemFamily: "LINUX"
+      TaskRoleArn: {"Fn::GetAtt": ['DemoTaskdefinationRole','Arn']}
+
+  DemoECSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow HTTP traffic from ECS service 
+      VpcId: !Ref VPCID
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+
+  MeetingsNetworkRxBytes:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: !Sub "Meetings service's Number of bytes received from resource"
+      AlarmName: !Sub adarsh-meetings-network-rx-bytes-alarm
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Dimensions:
+      - Name: ClusterName
+        Value: !Ref ClusterParameter
+      - Name: ServiceName
+        Value: !GetAtt DemoService.Name
+      EvaluationPeriods: 1
+      MetricName: NetworkRxBytes
+      Namespace: ECS/ContainerInsights
+      OKActions:
+      - !Ref AdarshScaleInPolicy
+      AlarmActions:
+      - !Ref AdarshScaleOutPolicy
+      Statistic: Sum
+      Threshold: 20
+      Period: '3'
+      TreatMissingData: breaching
+
+  AdarshAutoScalingRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: [application-autoscaling.amazonaws.com]
+          Action: ["sts:AssumeRole"]
+      Path: /
+      Policies:
+      - PolicyName: service-autoscaling
+        PolicyDocument:
+          Statement:
+          - Effect: Allow
+            Action: ["application-autoscaling:*", "cloudwatch:*","ecs:DescribeServices", "ecs:UpdateService"]
+            Resource: "*"
+
+  AdarshScaleOutPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: ecs-fargate-scale-out-policy
+      PolicyType: StepScaling
+      ScalingTargetId: !Ref AdarshScalableTarget
+      StepScalingPolicyConfiguration:
+        AdjustmentType: ChangeInCapacity
+        Cooldown: 1500
+        MetricAggregationType: Maximum
+        StepAdjustments:
+          - MetricIntervalLowerBound: 0
+            ScalingAdjustment: 1
+
+  AdarshScaleInPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: ecs-fargate-scale-in-policy
+      PolicyType: StepScaling
+      ScalingTargetId: !Ref AdarshScalableTarget
+      StepScalingPolicyConfiguration:
+        AdjustmentType: ChangeInCapacity
+        Cooldown: 300
+        MetricAggregationType: Maximum
+        StepAdjustments:
+          - MetricIntervalUpperBound: 0
+            ScalingAdjustment: -1
+
+  AdarshScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: 20
+      MinCapacity: 1
+      RoleARN: {"Fn::GetAtt": ['AdarshAutoScalingRole','Arn']}
+      ServiceNamespace: ecs
+      ScalableDimension: ecs:service:DesiredCount
+      ResourceId: !Join
+      - '/'
+      - - 'service'
+        - !Ref ClusterParameter
+        - !GetAtt DemoService.Name
